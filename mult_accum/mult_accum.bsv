@@ -53,6 +53,9 @@ package mult_accum;
 		function Bit#(32) int_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
 			Bit#(16) mult_result = 16'b0;
 			Bit#(32) add_result = 32'b0;
+
+			a[15:8]=8'b0;
+			b[15:8]=8'b0;			
 			
 			for ( Integer i=0 ; i<8 ; i = i+1) begin
 				if (b[i]==1) begin
