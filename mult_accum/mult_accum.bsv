@@ -56,7 +56,7 @@ package mult_accum;
 			
 			for ( Integer i=0 ; i<8 ; i = i+1) begin
 				if (b[i]==1) begin
-					mult_result=ripple_adder_16bit(mult_result,a);
+					mult_result=ripple_adder_16bit(mult_result,(a << i));
 				end
 			end
 			
