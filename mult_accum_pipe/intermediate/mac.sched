@@ -1,0 +1,41 @@
+=== Generated schedule for mac ===
+
+Method schedule
+---------------
+Method: get_A
+Ready signal: a_fif.i_notFull
+Conflict-free: get_B, get_C, get_select, result
+Conflicts: get_A
+ 
+Method: get_B
+Ready signal: b_fif.i_notFull
+Conflict-free: get_A, get_C, get_select, result
+Conflicts: get_B
+ 
+Method: get_C
+Ready signal: c_fif.i_notFull
+Conflict-free: get_A, get_B, get_select, result
+Conflicts: get_C
+ 
+Method: get_select
+Ready signal: s_fif.i_notFull
+Conflict-free: get_A, get_B, get_C, result
+Conflicts: get_select
+ 
+Method: result
+Ready signal: s_fif.i_notEmpty &&
+	      out_fp_fif.i_notEmpty && out_int_fif.i_notEmpty
+Conflict-free: get_A, get_B, get_C, get_select
+Conflicts: result
+ 
+Rule schedule
+-------------
+Rule: rl_mac
+Predicate: a_fif.i_notEmpty &&
+	   b_fif.i_notEmpty &&
+	   c_fif.i_notEmpty && out_int_fif.i_notFull && out_fp_fif.i_notFull
+Blocking rules: (none)
+ 
+Logical execution order: get_A, get_B, get_C, get_select, result, rl_mac
+
+===================================

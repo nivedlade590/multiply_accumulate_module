@@ -1,0 +1,15 @@
+SIM ?= verilator
+TOPLEVEL_LANG ?= verilog
+
+PWD=$(shell pwd)
+
+export PYTHONPATH:=$(PWD)/mult_accum_verif:$(PYTHONPATH)
+
+VERILOG_SOURCES=$(PWD)/verilog/mac.v
+
+EXTRA_ARGS = --trace --trace-structs
+
+TOPLEVEL = mac
+MODULE   := test_mult_accum
+
+include $(shell cocotb-config --makefiles)/Makefile.sim
