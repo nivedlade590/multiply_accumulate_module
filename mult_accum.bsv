@@ -67,6 +67,7 @@ endfunction
 function Bit#(8) toTwosComplement_8(Bit#(8) x);
 	// Check if the value is negative
 	if (x[7] == 1) begin
+		x[7]=0;
 		Bit#(8) p = ripple_adder_8bit( (~x),8'b1);
 		return p;
 	end else begin
@@ -78,6 +79,7 @@ endfunction
 function Bit#(16) toTwosComplement_16(Bit#(16) x);
 	// Check if the value is negative
 	if (x[15] == 1) begin
+		x[15] = 0;
 		Bit#(16) p = ripple_adder_16bit( (~x),16'b1);
 		return p;
 	end else begin
@@ -89,6 +91,7 @@ endfunction
 function Bit#(32) toTwosComplement_32(Bit#(32) x);
 	// Check if the value is negative
 	if (x[31] == 1) begin
+		x[31] = 0;
 		Bit#(32) p = ripple_adder_32bit( (~x),32'b1);
 		return p;
 	end else begin
@@ -102,8 +105,8 @@ function Bit#(32) twosComplementToSignedBit_32(Bit#(32) x);
 		// Convert to positive magnitude by inverting bits and adding 1
 		Bit#(32) p = ripple_adder_32bit( (~x),32'b1);
 		// Set the signedValue to negative by setting the MSB manually
-		p = (32'b1 << 31) | p;
-		return p;//{1'b1, p[30:0]};
+		//p = (32'b1 << 31) | p;
+		return {1'b1, p[30:0]};
 	end else begin
 		return x;
 	end
@@ -175,27 +178,28 @@ function Bit#(32) int_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
 	Bit#(16) mult_result = 16'b0;
 	Bit#(32) add_result = 32'b0;
 	Bit#(32) mult_result32 = 32'b0;
-	//making sure a,b have values in only 8-bit range
-	//a[15:8] = 8'b0;
-	//b[15:8] = 8'b0;
 	
 	//converting to two's compliment for addition and substraction
 	a[7:0] = toTwosComplement_8(a[7:0]);
 	b[7:0] = toTwosComplement_8(b[7:0]);
-	c = toTwosComplement_32(c);
+	a=signExtend(a[7:0]);
+	b=signExtend(b[7:0]);
+
+	c = toTwosComplement_32(c);	
 	
-	for ( Integer i=0 ; i<8 ; i = i+1) begin
+	for ( Integer i=0 ; i<16 ; i = i+1) begin
 		if (b[i]==1) begin
 			mult_result=ripple_adder_16bit(mult_result,(a << i));
 		end
 	end
 	
-	mult_result32[15:0]=mult_result;
-	if(mult_result32[15]==1) mult_result32[31:16] = 16'b1111111111111111;
+	//mult_result32[15:0]=mult_result;
+	//if(mult_result32[15]==1) mult_result32[31:16] = 16'b1111111111111111;
+	mult_result32 = signExtend(mult_result);
 	
 	add_result=ripple_adder_32bit(mult_result32,c);
 	
-	return {16'b0,a};//mult_result32;//twosComplementToSignedBit_32(add_result);
+	return twosComplementToSignedBit_32(add_result);
 	
 endfunction : int_mac_function
 		
