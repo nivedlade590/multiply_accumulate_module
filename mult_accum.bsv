@@ -11,11 +11,6 @@ package mult_accum;
 //******************************** int functions *********************************************************************************
 //********************************************************************************************************************************
 
-	
-	//Assumption:considering a,b have top 8-bits as 0, if they spoof us by having something other than that, we didn't handle it, like if there is other than 0, then final added value will be off - ( handled ) by putting zeroes explicitely
-	
-
-		
 function Bit#(8) ripple_adder_8bit( Bit#(8) x, Bit#(8) y);	//for adding exponents 
 	Bit#(8) sum = 8'b0;
 	Bit#(8) carry = 8'b0;
@@ -63,129 +58,13 @@ function Bit#(32) ripple_adder_32bit( Bit#(32) x, Bit#(32) y);
 	
 endfunction
 
-//two's compliment conversion of 8-bit signed int
-function Bit#(8) toTwosComplement_8(Bit#(8) x);
-	// Check if the value is negative
-	if (x[7] == 1) begin
-		x[7]=0;
-		Bit#(8) p = ripple_adder_8bit( (~x),8'b1);
-		return p;
-	end else begin
-		return x;
-	end
-endfunction
-
-//two's compliment conversion of 16-bit signed int
-function Bit#(16) toTwosComplement_16(Bit#(16) x);
-	// Check if the value is negative
-	if (x[15] == 1) begin
-		x[15] = 0;
-		Bit#(16) p = ripple_adder_16bit( (~x),16'b1);
-		return p;
-	end else begin
-		return x;
-	end
-endfunction
-
-//two's compliment conversion of 32-bit signed int
-function Bit#(32) toTwosComplement_32(Bit#(32) x);
-	// Check if the value is negative
-	if (x[31] == 1) begin
-		x[31] = 0;
-		Bit#(32) p = ripple_adder_32bit( (~x),32'b1);
-		return p;
-	end else begin
-		return x;
-	end
-endfunction
-
-function Bit#(32) twosComplementToSignedBit_32(Bit#(32) x);
-	// Check if the MSB (sign bit) is 1 (indicating a negative number)
-	if (x[31] == 1) begin
-		// Convert to positive magnitude by inverting bits and adding 1
-		Bit#(32) p = ripple_adder_32bit( (~x),32'b1);
-		// Set the signedValue to negative by setting the MSB manually
-		//p = (32'b1 << 31) | p;
-		return {1'b1, p[30:0]};
-	end else begin
-		return x;
-	end
-endfunction
-/*
-//mult and add full unsigned
-function Bit#(32) int_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
-	Bit#(16) mult_result = 16'b0;
-	Bit#(32) add_result = 32'b0;
-	Bit#(32) mult_result32 = 32'b0;
-	//making sure a,b have values in only 8-bit range
-	a[15:8] = 8'b0;
-	b[15:8] = 8'b0;
-	
-	if(a[7]==1) a[15:8] = 8'b11111111;
-	if(b[7]==1) b[15:8] = 8'b11111111;
-	
-	//converting to two's compliment for addition and substraction
-	//a = toTwosComplement_16(a);
-	//b = toTwosComplement_16(b);
-	//c = toTwosComplement_32(c);
-	
-	for ( Integer i=0 ; i<8 ; i = i+1) begin
-		if (b[i]==1) begin
-			mult_result32=ripple_adder_32bit(mult_result32,zeroExtend(a << i));
-		end
-	end
-	
-	mult_result32[15:0]=mult_result;
-	if(mult_result32[15]==1) mult_result32[31:16] = 16'b1111111111111111;
-	
-	add_result=ripple_adder_32bit(mult_result32,c);
-	
-	return mult_result32;//{16'b0,mult_result};//add_result;//{16'b0,b};//twosComplementToSignedBit_32(add_result);////
-	
-endfunction : int_mac_function
-*/
-
-//original int mac function
-/*
-//mult and add full
-function Bit#(32) int_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
-	Bit#(16) mult_result = 16'b0;
-	Bit#(32) add_result = 32'b0;
-	//making sure a,b have values in only 8-bit range
-	a[15:8] = 8'b0;
-	b[15:8] = 8'b0;
-	
-	//converting to two's compliment for addition and substraction
-	a[7:0] = toTwosComplement_8(a[7:0]);
-	b[7:0] = toTwosComplement_8(b[7:0]);
-	c = toTwosComplement_32(c);
-	
-	for ( Integer i=0 ; i<8 ; i = i+1) begin
-		if (b[i]==1) begin
-			mult_result=ripple_adder_16bit(mult_result,(a << i));
-		end
-	end
-	
-	add_result=ripple_adder_32bit(zeroExtend(mult_result),c);
-	
-	return twosComplementToSignedBit_32(add_result);
-	
-endfunction : int_mac_function
-*/
-
-//mult and add full
 function Bit#(32) int_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
 	Bit#(16) mult_result = 16'b0;
 	Bit#(32) add_result = 32'b0;
 	Bit#(32) mult_result32 = 32'b0;
 	
-	//converting to two's compliment for addition and substraction
-	a[7:0] = toTwosComplement_8(a[7:0]);
-	b[7:0] = toTwosComplement_8(b[7:0]);
 	a=signExtend(a[7:0]);
 	b=signExtend(b[7:0]);
-
-	c = toTwosComplement_32(c);	
 	
 	for ( Integer i=0 ; i<16 ; i = i+1) begin
 		if (b[i]==1) begin
@@ -193,27 +72,25 @@ function Bit#(32) int_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
 		end
 	end
 	
-	//mult_result32[15:0]=mult_result;
-	//if(mult_result32[15]==1) mult_result32[31:16] = 16'b1111111111111111;
 	mult_result32 = signExtend(mult_result);
 	
 	add_result=ripple_adder_32bit(mult_result32,c);
 	
-	return twosComplementToSignedBit_32(add_result);
+	return add_result;
 	
 endfunction : int_mac_function
 		
+
 //******************************** fp32 functions ********************************************************************************
 //********************************************************************************************************************************
 
-
-function Bit#(48) ripple_adder_48bit( Bit#(48) x, Bit#(48) y);	//for adding in multiplication 2 23 bit mantissa, 1 in 24th bit 
-	Bit#(48) sum = 48'b0;
-	Bit#(48) carry = 48'b0;
+function Bit#(9) ripple_adder_9bit( Bit#(9) x, Bit#(9) y);	//for adding in multiplication 2 23 bit mantissa, 1 in 24th bit 
+	Bit#(9) sum = 9'b0;
+	Bit#(9) carry = 9'b0;
 	
-	for ( Integer i=0 ; i<48 ; i = i+1) begin
+	for ( Integer i=0 ; i<9 ; i = i+1) begin
 		sum[i] = x[i] ^ y[i] ^ carry[i];
-		if(i!=47) begin
+		if(i!=8) begin
 			carry[i+1] = ( x[i] & y[i]) | (carry[i] & (x[i] ^ y[i]));
 		end 
 	end		
@@ -222,10 +99,27 @@ function Bit#(48) ripple_adder_48bit( Bit#(48) x, Bit#(48) y);	//for adding in m
 	
 endfunction
 
+function Bit#(25) ripple_adder_25bit( Bit#(25) x, Bit#(25) y);	//for adding in multiplication 2 23 bit mantissa, 1 in 24th bit 
+	Bit#(25) sum = 25'b0;
+	Bit#(25) carry = 25'b0;
+	
+	for ( Integer i=0 ; i<25 ; i = i+1) begin
+		sum[i] = x[i] ^ y[i] ^ carry[i];
+		if(i!=24) begin
+			carry[i+1] = ( x[i] & y[i]) | (carry[i] & (x[i] ^ y[i]));
+		end 
+	end		
+	
+	return sum;	
+	
+endfunction
+/*
 function Bit#(32) float_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
 
 //multiplication
-
+	a=16'b0011111110000000;
+	b=16'b0011111110000000;
+	c=32'b00111111111111110000000000000000;
 	Bit#(32) a32 = {a,16'b0};	//a_extendedto_fp32
 	Bit#(32) b32 = {b,16'b0};	//b_extendedto_fp32
 	Bit#(32) mult_result = 32'b0;
@@ -275,6 +169,7 @@ function Bit#(32) float_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
 	Bit#(8) expDiff;
 	Bit#(8) expA = mult_result[30:23];
 	Bit#(8) expB = c[30:23];
+	Bit#(8) add_exp_result=8'b0;
 	Bit#(48) shiftedMantA, shiftedMantB;
 	
 	if (expA > expB) begin
@@ -300,7 +195,7 @@ function Bit#(32) float_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
 	if ( add_mant_Result[47]==1 ) begin
 		//removed the leading 1, remove this line if further calc need to add 1 again, or else this is fp32 format
 		add_mant_Result = add_mant_Result << 1;
-		mult_result[30:23] = ripple_adder_8bit(expA > expB ? expA : expB, 8'b1); //increment exponent by 1
+		add_exp_result = ripple_adder_8bit(expA > expB ? expA : expB, 8'b1); //increment exponent by 1
 	end 
 	
 	//now leading bit already 0, value=1 case is considered
@@ -323,11 +218,300 @@ function Bit#(32) float_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
 //final result culmination
 
 	add_result[31] = (shiftedMantA > shiftedMantB) ? mult_result[31] : c[31];
-	add_result[30:23] = mult_result[30:23];
+	add_result[30:23] = add_exp_result;
 	add_result[22:0] = add_mant_Result[47:25];
-	return add_result;
+	return add_result;//{mult_result[31:23],mantissa_result[22:0]};
 endfunction
+*/
+/*
+function Bit#(32) float_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
 
+//multiplication
+	a=16'b0100110110110000;
+	b=16'b0100000100011100;
+	//c=32'b00111111100000000000000000000000;
+	Bit#(32) mult_result = 32'b0;
+	Bit#(32) add_result = 32'b0;
+	
+	//sign-bit
+	
+	mult_result[31] = a[15] ^ b[15];
+	
+	//exponent - adding two 8-bit - inline ripple carry adder (Note: ignoring the edge case of carry out bit being 1- didn't handle it, so carry only 8-bit instead of 9-bit, handled by the if case in the for loop)
+	
+	mult_result[30:23] = ripple_adder_8bit(a[14:7],b[14:7]);
+	mult_result[30:23] = ripple_adder_8bit(mult_result[30:23],8'b10000001); //-127 bias
+	
+	//mantissa
+	
+	//extending mantissas to the size of product of them both
+	
+	Bit#(16) a_mantissa = {8'b0,1'b1,a[6:0]}; //added 1 in front, removed during representation
+	Bit#(16) b_mantissa = {8'b0,1'b1,b[6:0]}; //added 1 in front, removed during representation
+	Bit#(16) mantissa_result = 16'b0;
+	
+	for ( Integer i=0 ; i<8 ; i = i+1) begin
+		if (b_mantissa[i]==1) begin
+			mantissa_result=ripple_adder_16bit(mantissa_result,(a_mantissa << i));
+		end
+	end
+	
+	//after multiplying leading two bits will be before the point having values 1 or 2 or 3(0 not possible because always multipplying 1.f and 1.f) 
+	
+	//In case leading bit is 1 means 2 or 3 before the point (binary 10 or 11)
+	
+	if ( mantissa_result[15] == 1) begin
+		//removed the leading 1, remove this line if further calc need to add 1 again, or else this is fp32 format
+		mantissa_result = mantissa_result << 1;
+		mult_result[30:23] = ripple_adder_8bit(mult_result[30:23], 8'b1); //increment exponent by 1
+	end 
+	
+	//now leading bit already 0, value=1 case is considered
+	else begin
+		//left shift by 1 if needed 1 bit in further calculations
+		mantissa_result = mantissa_result << 2;//removed leading 01(2 bits) 	
+	end
+	
+	mult_result[22:0]={mantissa_result,7'b0};
+	
+	Bit#(9) sum={1'b0,mult_result[22:16],1'b0};
+	//rounding based on round to nearest
+	//if condition meaning= !(all bits on right side of add_result[0] are 0)
+	if( mult_result[15:0] > 0) begin
+	//add_mant_Result[23] == 0 means nearest even number is add_mant_Result[47:25] else the number plus 1
+		if( mult_result[15] != 0) begin
+			sum=ripple_adder_9bit(sum,{7'b0,1'b1,1'b0});
+		end
+		if( sum[8]==1) mult_result[30:23] = ripple_adder_8bit(mult_result[30:23], 8'b1); //overflow condition increase exponent
+	end
+	mult_result[22:16]=sum[7:1];
+	mult_result[15:0]=16'b0;
+
+	
+//addition
+	
+	Bit#(8) expDiff;
+	Bit#(8) expA = mult_result[30:23];
+	Bit#(8) expB = c[30:23];
+	Bit#(8) add_exp_result=8'b0;
+	Bit#(25) shiftedMantA, shiftedMantB;
+	
+	add_exp_result = expA > expB ? expA : expB;
+	
+	if (expA > expB) begin
+		expDiff = expA - expB;
+		shiftedMantA = {1'b0,1'b1,mult_result[22:0]};
+		shiftedMantB = {1'b0,1'b1,c[22:0]} >> expDiff;
+	end else begin
+		expDiff = expB - expA;
+		shiftedMantA = {1'b0,1'b1,mult_result[22:0]} >> expDiff;
+		shiftedMantB = {1'b0,1'b1,c[22:0]};
+	end
+	
+	Bit#(25) add_mant_Result;
+	if (mult_result[31] == c[31]) begin
+		add_mant_Result = ripple_adder_25bit(shiftedMantA,shiftedMantB);
+	end else begin
+	//implement signed to 2s complimentary conversion here,should work for now
+		add_mant_Result = (shiftedMantA > shiftedMantB) ? 
+					(shiftedMantA - shiftedMantB) : 
+					(shiftedMantB - shiftedMantA);
+	end
+	
+	if ( add_mant_Result[24]==1 ) begin
+		//removed the leading 1, remove this line if further calc need to add 1 again, or else this is fp32 format
+		add_mant_Result = add_mant_Result << 1;
+		add_exp_result = ripple_adder_8bit(expA > expB ? expA : expB, 8'b1); //increment exponent by 1
+	end 
+	
+	//now leading bit already 0, value=1 case is considered
+	else begin
+		//left shift by 1 if needed 1 bit in further calculations
+		add_mant_Result = add_mant_Result << 2;//removed leading 01(2 bits) 	
+	end
+	
+//final result culmination
+
+	add_result[31] = (shiftedMantA > shiftedMantB) ? mult_result[31] : c[31];
+	add_result[30:23] = add_exp_result;
+	add_result[22:0] = add_mant_Result[24:2];
+	*//*
+	Bit#(25) sum1={1'b0,add_mant_Result[24:2],1'b0};
+	//rounding based on round to nearest
+	//if condition meaning= !(all bits on right side of add_result[0] are 0)
+	if( add_mant_Result[1:0] > 0) begin
+	//add_mant_Result[23] == 0 means nearest even number is add_mant_Result[47:25] else the number plus 1
+		if( add_mant_Result[1] != 0) begin
+			sum1=ripple_adder_25bit(sum1,{23'b0,1'b1,1'b0});
+		end
+		if( sum1[24]==1) add_exp_result = ripple_adder_8bit(add_exp_result, 8'b1); //overflow condition increase exponent
+	end
+	
+	add_result[31] = (shiftedMantA > shiftedMantB) ? mult_result[31] : c[31];
+	add_result[30:23] = add_exp_result;
+	add_result[22:0] = sum1[23:1];
+	*//*
+	return mult_result;//add_result;//{mult_result[31:23],mantissa_result[22:0]};
+endfunction
+*/
+
+function Bit#(32) float_mac_function( Bit#(16) a, Bit#(16) b, Bit#(32) c);
+
+//multiplication
+	//a=16'b0100110110110000;
+	//b=16'b0100000100011100;
+	//c=32'b00111111100000000000000000000000;
+	Bit#(32) mult_result = 32'b0;
+	Bit#(32) add_result = 32'b0;
+	
+	//sign-bit
+	
+	mult_result[31] = a[15] ^ b[15];
+	
+	//exponent - adding two 8-bit - inline ripple carry adder (Note: ignoring the edge case of carry out bit being 1- didn't handle it, so carry only 8-bit instead of 9-bit, handled by the if case in the for loop)
+	
+	mult_result[30:23] = ripple_adder_8bit(a[14:7],b[14:7]);
+	mult_result[30:23] = ripple_adder_8bit(mult_result[30:23],8'b10000001); //-127 bias
+	
+	//mantissa
+	
+	//extending mantissas to the size of product of them both
+	
+	Bit#(16) a_mantissa = {8'b0,1'b1,a[6:0]}; //added 1 in front, removed during representation
+	Bit#(16) b_mantissa = {8'b0,1'b1,b[6:0]}; //added 1 in front, removed during representation
+	Bit#(16) mantissa_result = 16'b0;
+	
+	for ( Integer i=0 ; i<8 ; i = i+1) begin
+		if (b_mantissa[i]==1) begin
+			mantissa_result=ripple_adder_16bit(mantissa_result,(a_mantissa << i));
+		end
+	end
+	
+	//after multiplying leading two bits will be before the point having values 1 or 2 or 3(0 not possible because always multipplying 1.f and 1.f) 
+	
+	//In case leading bit is 1 means 2 or 3 before the point (binary 10 or 11)
+	
+	if ( mantissa_result[15] == 1) begin
+		//removed the leading 1, remove this line if further calc need to add 1 again, or else this is fp32 format
+		mantissa_result = mantissa_result << 1;
+		mult_result[30:23] = ripple_adder_8bit(mult_result[30:23], 8'b1); //increment exponent by 1
+	end 
+	
+	//now leading bit already 0, value=1 case is considered
+	else begin
+		//left shift by 1 if needed 1 bit in further calculations
+		mantissa_result = mantissa_result << 2;//removed leading 01(2 bits) 	
+	end
+	
+	mult_result[22:0]={mantissa_result,7'b0};
+	/*
+	Bit#(9) sum={1'b0,mult_result[22:16],1'b0};
+	//rounding based on round to nearest
+	//if condition meaning= !(all bits on right side of add_result[0] are 0)
+	if( mult_result[15:0] > 0) begin
+	//add_mant_Result[23] == 0 means nearest even number is add_mant_Result[47:25] else the number plus 1
+		if( mult_result[15] != 0) begin
+			sum=ripple_adder_9bit(sum,{7'b0,1'b1,1'b0});
+		end
+		if( sum[8]==1) mult_result[30:23] = ripple_adder_8bit(mult_result[30:23], 8'b1); //overflow condition increase exponent
+	end
+	mult_result[22:16]=sum[7:1];
+	mult_result[15:0]=16'b0;
+	*/
+	Bit#(9) sum={1'b0,mult_result[22:16],1'b0};
+	if( mult_result[15] != 0) begin
+		if (mult_result[14] == 1 || mult_result[13:0] > 0) begin
+			sum=ripple_adder_9bit(sum,{7'b0,1'b1,1'b0});
+			if( sum[8]==1) mult_result[30:23] = ripple_adder_8bit(mult_result[30:23], 8'b1);
+		end else begin
+			if ( mult_result[16] != 0 ) begin
+				sum=ripple_adder_9bit(sum,{7'b0,1'b1,1'b0});
+				if( sum[8]==1) mult_result[30:23] = ripple_adder_8bit(mult_result[30:23], 8'b1);
+			end
+		end
+	end
+	mult_result[22:16]=sum[7:1];
+	mult_result[15:0]=16'b0;
+	
+//addition
+	
+	Bit#(8) expDiff;
+	Bit#(8) expA = mult_result[30:23];
+	Bit#(8) expB = c[30:23];
+	Bit#(8) add_exp_result=8'b0;
+	Bit#(25) shiftedMantA, shiftedMantB;
+	
+	add_exp_result = expA > expB ? expA : expB;
+	
+	if (expA > expB) begin
+		expDiff = expA - expB;
+		shiftedMantA = {1'b0,1'b1,mult_result[22:0]};
+		shiftedMantB = {1'b0,1'b1,c[22:0]} >> expDiff;
+	end else begin
+		expDiff = expB - expA;
+		shiftedMantA = {1'b0,1'b1,mult_result[22:0]} >> expDiff;
+		shiftedMantB = {1'b0,1'b1,c[22:0]};
+	end
+	
+	Bit#(25) add_mant_Result;
+	if (mult_result[31] == c[31]) begin
+		add_mant_Result = ripple_adder_25bit(shiftedMantA,shiftedMantB);
+	end else begin
+	//implement signed to 2s complimentary conversion here,should work for now
+		add_mant_Result = (shiftedMantA > shiftedMantB) ? 
+					(shiftedMantA - shiftedMantB) : 
+					(shiftedMantB - shiftedMantA);
+	end
+	
+	if ( add_mant_Result[24]==1 ) begin
+		//removed the leading 1, remove this line if further calc need to add 1 again, or else this is fp32 format
+		add_mant_Result = add_mant_Result << 1;
+		add_exp_result = ripple_adder_8bit(expA > expB ? expA : expB, 8'b1); //increment exponent by 1
+	end 
+	
+	//now leading bit already 0, value=1 case is considered
+	else begin
+		//left shift by 1 if needed 1 bit in further calculations
+		add_mant_Result = add_mant_Result << 2;//removed leading 01(2 bits) 	
+	end
+	
+//final result culmination
+	/*
+	add_result[31] = (shiftedMantA > shiftedMantB) ? mult_result[31] : c[31];
+	add_result[30:23] = add_exp_result;
+	add_result[22:0] = add_mant_Result[24:2];
+	*/
+	/*
+	Bit#(25) sum1={1'b0,add_mant_Result[24:2],1'b0};
+	//rounding based on round to nearest
+	//if condition meaning= !(all bits on right side of add_result[0] are 0)
+	if( add_mant_Result[1:0] > 0) begin
+	//add_mant_Result[23] == 0 means nearest even number is add_mant_Result[47:25] else the number plus 1
+		if( add_mant_Result[1] != 0) begin
+			sum1=ripple_adder_25bit(sum1,{23'b0,1'b1,1'b0});
+		end
+		if( sum1[24]==1) add_exp_result = ripple_adder_8bit(add_exp_result, 8'b1); //overflow condition increase exponent
+	end
+	*/
+	Bit#(25) sum1={1'b0,add_mant_Result[24:2],1'b0};
+	if( add_mant_Result[1] != 0) begin
+		if (add_mant_Result[0] == 1) begin
+			sum1=ripple_adder_25bit(sum1,{23'b0,1'b1,1'b0});
+			if( sum1[24]==1) add_exp_result = ripple_adder_8bit(add_exp_result, 8'b1);
+		end else begin
+			if ( add_mant_Result[2] != 0 ) begin
+				sum1=ripple_adder_25bit(sum1,{23'b0,1'b1,1'b0});
+				if( sum1[24]==1) add_exp_result = ripple_adder_8bit(add_exp_result, 8'b1);
+			end
+		end
+	end
+	
+	add_result[31] = (shiftedMantA > shiftedMantB) ? mult_result[31] : c[31];
+	add_result[30:23] = add_exp_result;
+	add_result[22:0] = sum1[23:1];
+	
+	return add_result;//{mult_result[31:23],mantissa_result[22:0]};
+endfunction
 	
 //******************************** top module ***********************************************************************************
 //********************************************************************************************************************************
