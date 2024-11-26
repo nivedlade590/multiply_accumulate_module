@@ -190,7 +190,7 @@ async def test_mult_accum(dut):
 	print("coverage% of c = ")
 	print(32/4294967296)
 	print("cross coverage% of a,b,c = ")
-	print((10000/(256*256)))
+	print((10000/(256*256*4294967296)))
 	print("-------------------")
 #********************************* random testcases for float ********************************************************************
 #*********************************************************************************************************************************
@@ -232,5 +232,14 @@ async def test_mult_accum(dut):
 		
 		#print(i,result,value);
 		#assert result[0:29] == value[0:29] , f'Mismatch,wrong assert,***{i}***'
-	
+	print("-------------------")
+	print("coverage% of a = ")
+	print(1000/65536)
+	print("coverage% of b = ")
+	print(1000/65536)
+	print("coverage% of c = ")
+	print(1000/4294967296)
+	print("cross coverage% of a,b,c = ")
+	print((1000/(65536*65536*4294967296)))
+	print("-------------------")
 	coverage_db.export_to_yaml(filename="coverage_counter.yml")
