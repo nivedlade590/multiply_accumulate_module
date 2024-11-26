@@ -14,5 +14,5 @@ b. unpipeined design : code - completed, verification - completed
 
 Assignment 2:
 
-int32: code - completed, verification - completed/not-completed
-bfloat16: code - completed, verification - completed/not-completed
+int32: code - completed, verification - not-completed
+bfloat16: code - completed, verification - not-completed
