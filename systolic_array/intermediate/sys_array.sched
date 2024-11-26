@@ -1,0 +1,62 @@
+=== Generated schedule for sys_array ===
+
+Method schedule
+---------------
+Method: get_row
+Ready signal: True
+Conflict-free: get_column, get_s, out1, out2, out3, out4
+Sequenced before (restricted): get_row
+ 
+Method: get_column
+Ready signal: True
+Conflict-free: get_row, get_s
+Sequenced before (restricted): get_column
+Sequenced after (restricted): out1, out2, out3, out4
+ 
+Method: get_s
+Ready signal: True
+Conflict-free: get_row, get_column
+Sequenced before (restricted): get_s
+Sequenced after (restricted): out1, out2, out3, out4
+ 
+Method: out1
+Ready signal: True
+Conflict-free: get_row, out1, out2, out3, out4
+Sequenced before (restricted): get_column, get_s
+ 
+Method: out2
+Ready signal: True
+Conflict-free: get_row, out1, out2, out3, out4
+Sequenced before (restricted): get_column, get_s
+ 
+Method: out3
+Ready signal: True
+Conflict-free: get_row, out1, out2, out3, out4
+Sequenced before (restricted): get_column, get_s
+ 
+Method: out4
+Ready signal: True
+Conflict-free: get_row, out1, out2, out3, out4
+Sequenced before (restricted): get_column, get_s
+ 
+Rule schedule
+-------------
+Rule: rl_sys_1
+Predicate: ! trigger
+Blocking rules: (none)
+ 
+Rule: rl_sys_2
+Predicate: trigger
+Blocking rules: (none)
+ 
+Logical execution order: out1,
+			 out2,
+			 out3,
+			 out4,
+			 rl_sys_1,
+			 get_row,
+			 rl_sys_2,
+			 get_column,
+			 get_s
+
+=========================================

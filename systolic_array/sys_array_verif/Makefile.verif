@@ -1,0 +1,15 @@
+SIM ?= verilator
+TOPLEVEL_LANG ?= verilog
+
+PWD=$(shell pwd)
+
+export PYTHONPATH:=$(PWD)/sys_array_verif:$(PYTHONPATH)
+
+VERILOG_SOURCES=$(PWD)/verilog/sys_array.v
+
+EXTRA_ARGS = --trace --trace-structs
+
+TOPLEVEL = sys_array
+MODULE   := test_sys_array
+
+include $(shell cocotb-config --makefiles)/Makefile.sim
