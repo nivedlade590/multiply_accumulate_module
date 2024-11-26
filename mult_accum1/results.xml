@@ -1,8 +1,0 @@
-<testsuites name="results">
-  <testsuite name="all" package="all">
-    <property name="random_seed" value="1730138697" />
-    <testcase name="test_mult_accum" classname="test_mult_accum" file="/home/shakti/Downloads/mult_accum1/mult_accum_verif/test_mult_accum.py" lineno="13" time="0.005802631378173828" sim_time_ns="5000.001" ratio_time="861678.2066851837">
-      <failure />
-    </testcase>
-  </testsuite>
-</testsuites>
