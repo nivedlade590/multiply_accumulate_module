@@ -1,7 +1,9 @@
 # model for increment alone
-
+import random
 import cocotb
+import numpy as np
 from cocotb_coverage.coverage import *
+from cocotb.binary import BinaryValue
 """
 counter_coverage = coverage_section(
     CoverPoint('top.increment_di', vname='increment_di', bins = list(range(0,16))),
@@ -9,18 +11,68 @@ counter_coverage = coverage_section(
     CoverCross('top.cross_cover', items = ['top.increment_di', 'top.EN_increment'])
 )
 @counter_coverage
-"""
-"""
-def model_counter(current_state, EN_increment: int, increment_di: int) -> int:
-    if(EN_increment):
-        return current_state + increment_di
-    return 0
-    
-"""
 
-#@counter_coverage
-def model_mult_accum(get_A_a , EN_get_A: int,get_B_b, EN_get_B: int, get_C_c, EN_get_C: int, get_select_s, EN_get_select: int):
-    if(get_select_s==0):
-    	if(EN_get_A==1 and EN_get_B==1 and EN_get_C==1):
-	        return (get_A_a*get_B_b)+get_C_c
-    return 0.0
+counter_coverage = coverage_section(
+    CoverPoint('top.a', vname='a', bins = binary_values_a),
+    CoverPoint('top.b', vname='b', bins = binary_values_b),
+    CoverCross('top.cross_cover', items = ['top.a', 'top.b'])
+)
+@counter_coverage
+"""
+"""
+def model_mult_accum_float(get_A_a,get_B_b, get_C_c):
+	return (np.float32(np.float16(np.float16(get_A_a)*np.float16(get_B_b)))+get_C_c)
+"""
+def model_mult_accum_int(get_A_a ,get_B_b, get_C_c):
+	return (get_A_a*get_B_b)+get_C_c
+
+def model_mult_accum_float(a,b,c):
+	# Extract components of a and b
+	sign1, exp1, mant1 = (a >> 15) & 0x1, (a >> 7) & 0xFF, a & 0x7F
+	sign2, exp2, mant2 = (b >> 15) & 0x1, (b >> 7) & 0xFF, b & 0x7F
+
+	# Compute the result's sign (XOR of the signs)
+	result_sign = sign1 ^ sign2
+
+	# Compute the significands (add implicit leading 1)
+	significand1 = 1 + (mant1 / 128)
+	significand2 = 1 + (mant2 / 128)
+
+	# Multiply the significands
+	significand_result = significand1 * significand2
+
+	# Compute the result exponent (adding exponents, subtracting bias)
+	result_exponent = exp1 + exp2 - 127
+
+	# Normalize the result (if significand_result >= 2, shift right and increase exponent)
+	if significand_result >= 2:
+		significand_result /= 2
+		result_exponent += 1
+
+	# Round the significand to 7 bits using round-to-nearest
+	rounded_mantissa = round((significand_result - 1) * 128)
+
+	# Handle overflow in mantissa rounding
+	if rounded_mantissa == 128:
+		rounded_mantissa = 0
+		result_exponent += 1
+
+	# Handle exponent overflow or underflow
+	if result_exponent >= 255:  # Overflow (Infinity)
+		result_exponent = 255
+		rounded_mantissa = 0
+	elif result_exponent <= 0:  # Underflow (Denormalized or zero)
+		result_exponent = 0
+		rounded_mantissa = 0
+
+	# Encode the result back to bf16 format
+	result_bf16 = (result_sign << 15) | (result_exponent << 7) | (rounded_mantissa & 0x7F)
+
+	# Convert bf16 result to fp32 by appending 16 zeroes
+	result_fp32 = result_bf16 << 16
+
+	# Add fp32 number c to the result
+	final_result = result_fp32 + c
+
+	return f"{final_result:032b}"
+
